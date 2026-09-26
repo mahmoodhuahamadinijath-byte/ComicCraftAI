@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ app_name }} - Comic Preview
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css"
+    >
+
+</head>
+
+<body>
+
+<main class="container">
+
+    <div class="topbar">
+
+        <div>
+
+            <span class="badge">
+                COMIC PREVIEW
+            </span>
+
+            <h1>
+                Your comic is ready.
+            </h1>
+
+        </div>
+
+        <a
+            class="button secondary"
+            href="/"
+        >
+            Create Another
+        </a>
+
+    </div>
+
+
+    <section class="comic">
+
+        {% for panel in layout %}
+
+        <article class="panel card">
+
+            <div class="panel-head">
+
+                <h2>
+
+                    Panel
+                    {{ panel.panel_number }}:
+                    {{ panel.title }}
+
+                </h2>
+
+            </div>
+
+
+            <img
+                src="{{ panel.image }}"
+                alt="Comic illustration"
+            >
+
+
+            <p class="scene">
+
+                {{ panel.scene_description }}
+
+            </p>
+
+
+            <div class="text-box">
+
+                <p>
+
+                    <strong>
+                        Caption:
+                    </strong>
+
+                    {{ panel.caption }}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Narration:
+                    </strong>
+
+                    {{ panel.narration }}
+
+                </p>
+
+
+                {% if panel.dialogue %}
+
+                <p>
+
+                    <strong>
+                        Dialogue:
+                    </strong>
+
+                    {{ panel.dialogue }}
+
+                </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <details>
+
+                <summary>
+                    View Image Prompt
+                </summary>
+
+                <p>
+                    {{ panel.image_prompt }}
+                </p>
+
+            </details>
+
+        </article>
+
+        {% endfor %}
+
+    </section>
+
+
+    <section class="download card">
+
+        <h2>
+            Export your comic
+        </h2>
+
+        <p>
+            Download the complete comic
+            as a PDF.
+        </p>
+
+        <a
+            class="button"
+            href="{{ pdf_url }}"
+            download
+        >
+            Download Your Comic as PDF
+        </a>
+
+    </section>
+
+</main>
+
+</body>
+
+</html>
