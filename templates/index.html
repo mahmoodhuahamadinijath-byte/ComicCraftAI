@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ app_name }} - AI Comic Creator
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css"
+    >
+
+</head>
+
+<body>
+
+<main class="container">
+
+    <section class="hero">
+
+        <span class="badge">
+            AI COMIC CREATOR
+        </span>
+
+        <h1>
+            Turn your idea into a comic.
+        </h1>
+
+        <p>
+            Create an AI-powered comic story
+            with characters, narration,
+            dialogue and illustrations.
+        </p>
+
+    </section>
+
+
+    <form
+        class="card form-grid"
+        action="/generate"
+        method="post"
+        onsubmit="showLoading()"
+    >
+
+        <label class="full">
+
+            Story Prompt
+
+            <textarea
+                name="story_prompt"
+                required
+                minlength="10"
+                maxlength="2000"
+                placeholder="A brave fox discovers a hidden library in an enchanted forest..."
+            ></textarea>
+
+        </label>
+
+
+        <label>
+
+            Main Character
+
+            <input
+                type="text"
+                name="character_name"
+                required
+                maxlength="80"
+                placeholder="Luna"
+            >
+
+        </label>
+
+
+        <label>
+
+            Setting
+
+            <input
+                type="text"
+                name="setting"
+                required
+                maxlength="200"
+                placeholder="Enchanted forest"
+            >
+
+        </label>
+
+
+        <label>
+
+            Story Tone
+
+            <select name="tone">
+
+                <option>
+                    light-hearted
+                </option>
+
+                <option>
+                    dramatic
+                </option>
+
+                <option>
+                    funny
+                </option>
+
+                <option>
+                    poetic
+                </option>
+
+                <option>
+                    adventurous
+                </option>
+
+            </select>
+
+        </label>
+
+
+        <label>
+
+            Art Style
+
+            <select name="art_style">
+
+                <option>
+                    comic book
+                </option>
+
+                <option>
+                    anime
+                </option>
+
+                <option>
+                    pixel art
+                </option>
+
+                <option>
+                    realistic
+                </option>
+
+                <option>
+                    watercolor
+                </option>
+
+            </select>
+
+        </label>
+
+
+        <label>
+
+            Number of Panels
+
+            <select name="panels">
+
+                <option value="5">
+                    5
+                </option>
+
+                <option value="6">
+                    6
+                </option>
+
+                <option value="7">
+                    7
+                </option>
+
+                <option value="8">
+                    8
+                </option>
+
+            </select>
+
+        </label>
+
+
+        <div class="full actions">
+
+            <button
+                id="generateBtn"
+                type="submit"
+            >
+                Create Comic
+            </button>
+
+            <span
+                id="loading"
+                class="loading"
+                hidden
+            >
+                Generating your comic...
+            </span>
+
+        </div>
+
+    </form>
+
+</main>
+
+
+<script src="/static/js/script.js"></script>
+
+</body>
+
+</html>
