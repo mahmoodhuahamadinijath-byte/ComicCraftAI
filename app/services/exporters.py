@@ -1,248 +1,180 @@
-from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 
 from fpdf import FPDF
-from PIL import Image
 
 
-def make_pdf_safe(
-    text: str
-) -> str:
+BASE_DIR = Path(__file__).resolve().parents[2]
+EXPORT_DIR = BASE_DIR / "static" / "exports"
+EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    replacements = {
-        "—": "-",
-        "–": "-",
-        "“": '"',
-        "”": '"',
-        "’": "'",
-        "…": "...",
-    }
 
-    for old, new in replacements.items():
+class ComicPDF(FPDF):
 
-        text = text.replace(
-            old,
-            new
+    def header(self):
+        self.set_font("Helvetica", "B", 16)
+        self.cell(
+            0,
+            10,
+            "COMICCRAFTAI",
+            new_x="LMARGIN",
+            new_y="NEXT",
+            align="C",
         )
 
-    return (
-        text
-        .encode(
-            "latin-1",
-            "replace"
+        self.set_font("Helvetica", "", 10)
+        self.cell(
+            0,
+            7,
+            "AI Comic Story Creator",
+            new_x="LMARGIN",
+            new_y="NEXT",
+            align="C",
         )
-        .decode("latin-1")
-    )
+
+        self.ln(5)
+
+    def add_wrapped_text(
+        self,
+        text: str,
+        font_size: int = 11,
+        bold: bool = False,
+    ):
+        style = "B" if bold else ""
+
+        self.set_font("Helvetica", style, font_size)
+
+        text = str(text)
+        text = text.replace("\n", " ")
+        text = text.replace("\r", " ")
+
+        words = text.split(" ")
+        safe_words = []
+
+        for word in words:
+            if len(word) > 60:
+                for i in range(0, len(word), 30):
+                    safe_words.append(word[i:i + 30])
+            else:
+                safe_words.append(word)
+
+        safe_text = " ".join(safe_words)
+
+        self.multi_cell(
+            0,
+            7,
+            safe_text,
+            new_x="LMARGIN",
+            new_y="NEXT",
+        )
+
+        self.ln(2)
 
 
 def save_pdf(layout) -> str:
 
-    base_directory = (
-        Path(__file__)
-        .resolve()
-        .parents[2]
-    )
+    filename = f"comic_{uuid4().hex[:8]}.pdf"
+    output_path = EXPORT_DIR / filename
 
-    export_directory = (
-        base_directory
-        / "static"
-        / "exports"
-    )
-
-    export_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    filename = (
-        "comic-"
-        + datetime.now().strftime(
-            "%Y%m%d-%H%M%S"
-        )
-        + ".pdf"
-    )
-
-    output_path = (
-        export_directory
-        / filename
-    )
-
-    pdf = FPDF(
-        orientation="P",
-        unit="mm",
-        format="A4",
-    )
+    pdf = ComicPDF()
 
     pdf.set_auto_page_break(
         auto=True,
         margin=15,
     )
 
-    for panel in layout:
+    for index, panel in enumerate(layout):
 
+        # Start a page for every panel
         pdf.add_page()
 
-        pdf.set_font(
-            "Helvetica",
-            "B",
-            18,
-        )
-
-        title = (
-            f"Panel "
-            f"{panel['panel_number']}: "
-            f"{panel['title']}"
-        )
-
-        pdf.cell(
-            0,
-            12,
-            make_pdf_safe(title),
-            ln=True,
-        )
-
-        relative_image = (
-            panel["image"]
-            .replace(
-                "/static/",
-                ""
-            )
-            .lstrip("/")
-        )
-
-        image_path = (
-            base_directory
-            / "static"
-            / relative_image
-        )
-
-        if image_path.exists():
-
-            with Image.open(
-                image_path
-            ) as image:
-
-                width, height = (
-                    image.size
-                )
-
-            max_width = 180
-            max_height = 105
-
-            scale = min(
-                max_width / width,
-                max_height / height,
-            )
-
-            display_width = (
-                width * scale
-            )
-
-            display_height = (
-                height * scale
-            )
-
-            x = (
-                210
-                - display_width
-            ) / 2
-
-            y = 28
-
-            pdf.image(
-                str(image_path),
-                x=x,
-                y=y,
-                w=display_width,
-                h=display_height,
-            )
-
-            pdf.set_y(
-                y
-                + display_height
-                + 7
-            )
-
-        else:
-
-            pdf.set_y(40)
-
-            pdf.cell(
-                0,
-                10,
-                "Image unavailable",
-                ln=True,
-            )
-
-        pdf.set_font(
-            "Helvetica",
-            "I",
-            10,
-        )
+        # Panel heading
+        pdf.set_font("Helvetica", "B", 14)
 
         pdf.multi_cell(
             0,
-            6,
-            make_pdf_safe(
-                panel[
-                    "scene_description"
-                ]
-            ),
+            8,
+            f"Panel {panel['panel_number']}: {panel['title']}",
+            new_x="LMARGIN",
+            new_y="NEXT",
         )
 
-        pdf.ln(2)
+        pdf.ln(3)
 
-        pdf.set_font(
-            "Helvetica",
-            "B",
-            11,
-        )
+        # Image
+        image_url = panel.get("image", "")
 
-        pdf.multi_cell(
-            0,
-            6,
-            make_pdf_safe(
-                "Caption: "
-                + panel["caption"]
-            ),
-        )
+        if image_url:
 
-        pdf.set_font(
-            "Helvetica",
-            "",
-            11,
-        )
-
-        pdf.multi_cell(
-            0,
-            6,
-            make_pdf_safe(
-                "Narration: "
-                + panel["narration"]
-            ),
-        )
-
-        if panel["dialogue"]:
-
-            pdf.set_font(
-                "Helvetica",
-                "B",
-                11,
+            image_path = (
+                BASE_DIR
+                / image_url.lstrip("/").replace("/", "\\")
             )
 
-            pdf.multi_cell(
-                0,
-                6,
-                make_pdf_safe(
-                    "Dialogue: "
-                    + panel["dialogue"]
-                ),
+            if image_path.exists():
+
+                try:
+                    pdf.image(
+                        str(image_path),
+                        x=15,
+                        w=180,
+                    )
+
+                    pdf.ln(5)
+
+                except Exception:
+                    pass
+
+        # Scene
+        pdf.add_wrapped_text(
+            "Scene:",
+            font_size=11,
+            bold=True,
+        )
+
+        pdf.add_wrapped_text(
+            panel.get("scene_description", ""),
+            font_size=10,
+        )
+
+        # Caption
+        pdf.add_wrapped_text(
+            "Caption:",
+            font_size=11,
+            bold=True,
+        )
+
+        pdf.add_wrapped_text(
+            panel.get("caption", ""),
+            font_size=10,
+        )
+
+        # Narration
+        pdf.add_wrapped_text(
+            "Narration:",
+            font_size=11,
+            bold=True,
+        )
+
+        pdf.add_wrapped_text(
+            panel.get("narration", ""),
+            font_size=10,
+        )
+
+        # Dialogue
+        if panel.get("dialogue"):
+
+            pdf.add_wrapped_text(
+                "Dialogue:",
+                font_size=11,
+                bold=True,
             )
 
-    pdf.output(
-        str(output_path)
-    )
+            pdf.add_wrapped_text(
+                panel.get("dialogue", ""),
+                font_size=10,
+            )
 
-    return (
-        f"/static/exports/{filename}"
-    )
+    pdf.output(str(output_path))
+
+    return f"/static/exports/{filename}"
